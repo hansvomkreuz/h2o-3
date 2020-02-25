@@ -157,6 +157,11 @@ public class XGBoost extends ModelBuilder<XGBoostModel,XGBoostModel.XGBoostParam
     if (expensive) {
       if (error_count() > 0)
         throw H2OModelBuilderIllegalArgumentException.makeFromBuilder(XGBoost.this);
+      if (_parms._distribution == DistributionFamily.AUTO) {
+        if (_nclass == 1) {_parms._distribution = DistributionFamily.gaussian;}
+        if (_nclass == 2) {_parms._distribution = DistributionFamily.bernoulli;}
+        if (_nclass >= 3) {_parms._distribution = DistributionFamily.multinomial;}
+      }
     }
 
     if ( _parms._backend == XGBoostModel.XGBoostParameters.Backend.gpu) {

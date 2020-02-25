@@ -41,6 +41,10 @@ def cv_cars_glm():
   glm2.train(x=predictors, y=response_col, training_frame=cars)
   pyunit_utils.check_models(glm1, glm2, True)
 
+  glm3 = H2OGeneralizedLinearEstimator(nfolds=nfolds, family=family)
+  glm3.train(x=predictors, y=response_col, training_frame=cars)
+  assert glm3.actual_params['fold_assignment'] == "Random"
+
   # 2. check that cv metrics are different over repeated "Random" runs
   nfolds = random.randint(3,10)
   glm1 = H2OGeneralizedLinearEstimator(nfolds=nfolds, family=family, fold_assignment="Random")

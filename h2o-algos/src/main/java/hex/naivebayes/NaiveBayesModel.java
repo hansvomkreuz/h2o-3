@@ -52,7 +52,20 @@ public class NaiveBayesModel extends Model<NaiveBayesModel,NaiveBayesModel.Naive
     public NaiveBayesOutput(NaiveBayes b) { super(b); }
   }
 
-  public NaiveBayesModel(Key selfKey, NaiveBayesParameters parms, NaiveBayesOutput output) { super(selfKey,parms,output); }
+  public NaiveBayesModel(Key selfKey, NaiveBayesParameters parms, NaiveBayesOutput output) { 
+    super(selfKey,parms,output);
+    initDefaultParam();
+  }
+  
+  void initDefaultParam() {
+    if (_parms._fold_assignment == Model.Parameters.FoldAssignmentScheme.AUTO && _parms._fold_column == null) {
+      if (_parms._nfolds > 0 /*&& _parms._fold_column == null*/){
+        _parms._fold_assignment = Parameters.FoldAssignmentScheme.Random;
+      } else {
+        _parms._fold_assignment = null;
+      }
+    }
+  }
 
   public ModelSchemaV3 schema() {
     return new NaiveBayesModelV3();

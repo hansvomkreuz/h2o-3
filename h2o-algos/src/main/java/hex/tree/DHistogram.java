@@ -407,6 +407,8 @@ public final class DHistogram extends Iced {
   }
   
   public static DHistogram make(String name, final int nbins, byte isInt, double min, double maxEx, long seed, SharedTreeModel.SharedTreeParameters parms, Key globalQuantilesKey, Constraints cs) {
+    if (parms._histogram_type == SharedTreeModel.SharedTreeParameters.HistogramType.AUTO)
+      parms._histogram_type = SharedTreeModel.SharedTreeParameters.HistogramType.UniformAdaptive;
     return new DHistogram(name,nbins, parms._nbins_cats, isInt, min, maxEx, parms._min_split_improvement, parms._histogram_type, seed, globalQuantilesKey, cs);
   }
 

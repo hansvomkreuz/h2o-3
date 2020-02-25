@@ -277,6 +277,7 @@ public class DeepLearning extends ModelBuilder<DeepLearningModel,DeepLearningMod
           assert (actualParms != previous.model_info().get_params());
           assert (actualParms != _parms);
           assert (actualParms != previous._parms);
+          //actualParms._distribution = cp._dist._family;
 
           // Update actualNewP parameters based on what the user wants (cp_modifiable parameters only), was cloned from the previous model so far
 

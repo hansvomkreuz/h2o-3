@@ -56,7 +56,19 @@ public class AggregatorModel extends Model<AggregatorModel,AggregatorModel.Aggre
   public Key<Vec> _exemplar_assignment_vec_key;
 
 
-  public AggregatorModel(Key selfKey, AggregatorParameters parms, AggregatorOutput output) { super(selfKey,parms,output); }
+  public AggregatorModel(Key selfKey, AggregatorParameters parms, AggregatorOutput output) { 
+    super(selfKey,parms,output);
+    initDefaultParam();
+  }
+  
+  void initDefaultParam() {
+    if (_parms._categorical_encoding == Parameters.CategoricalEncodingScheme.AUTO) {
+      if (_output.nclasses() == 1)
+        _parms._categorical_encoding = Parameters.CategoricalEncodingScheme.None;
+      else
+        _parms._categorical_encoding = Parameters.CategoricalEncodingScheme.OneHotInternal;
+    }
+  }
 
   @Override
   protected Frame predictScoreImpl(Frame orig, Frame adaptedFr, String destination_key, final Job j, boolean computeMetrics, CFuncRef customMetricFunc) {

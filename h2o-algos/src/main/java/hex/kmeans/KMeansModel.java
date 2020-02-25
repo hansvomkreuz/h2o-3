@@ -1,9 +1,6 @@
 package hex.kmeans;
 
-import hex.ClusteringModel;
-import hex.ModelMetrics;
-import hex.ModelMetricsClustering;
-import hex.ToEigenVec;
+import hex.*;
 import hex.genmodel.IClusteringModel;
 import hex.util.LinearAlgebraUtils;
 import water.DKV;
@@ -70,7 +67,20 @@ public class KMeansModel extends ClusteringModel<KMeansModel,KMeansModel.KMeansP
     public KMeansOutput( KMeans b ) { super(b); }
   }
 
-  public KMeansModel(Key selfKey, KMeansParameters parms, KMeansOutput output) { super(selfKey,parms,output); }
+  public KMeansModel(Key selfKey, KMeansParameters parms, KMeansOutput output) { 
+    super(selfKey,parms,output);
+    initDefaultParam();
+  }
+
+  void initDefaultParam() {
+    if (_parms._fold_assignment == Model.Parameters.FoldAssignmentScheme.AUTO && _parms._fold_column == null) {
+      if (_parms._nfolds > 0 /*&& _parms._fold_column == null*/){
+        _parms._fold_assignment = Parameters.FoldAssignmentScheme.Random;
+      } else {
+        _parms._fold_assignment = null;
+      }
+    }
+  }
 
   @Override public ModelMetrics.MetricBuilder makeMetricBuilder(String[] domain) {
     assert domain == null;

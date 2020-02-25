@@ -289,6 +289,12 @@ public class KMeans extends ClusteringModelBuilder<KMeansModel,KMeansModel.KMean
         if( centers==null ) return; // Stopped/cancelled during center-finding
         boolean work_unit_iter = !_parms._estimate_k;
         boolean constrained = _parms._cluster_size_constraints != null;
+        if (_parms._categorical_encoding == Model.Parameters.CategoricalEncodingScheme.AUTO) {
+          if (model._output._categorical_column_count == 0)
+            _parms._categorical_encoding = Model.Parameters.CategoricalEncodingScheme.None;
+          else
+            _parms._categorical_encoding = Model.Parameters.CategoricalEncodingScheme.Enum;
+        }
         
         // ---
         // Run the main KMeans Clustering loop

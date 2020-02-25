@@ -92,6 +92,7 @@ public class FrameUtils {
   public static Frame categoricalEncoder(Frame dataset, String[] skipCols, Model.Parameters.CategoricalEncodingScheme scheme, ToEigenVec tev, int maxLevels) {
     switch (scheme) {
       case AUTO:
+      case None:  
       case Enum:
       case SortByResponse: //the work is done in ModelBuilder - the domain is all we need to change once, adaptTestTrain takes care of test set adaptation
       case OneHotInternal:

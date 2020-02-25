@@ -3,6 +3,7 @@ package hex.tree.gbm;
 import hex.DistributionFactory;
 import hex.KeyValue;
 import hex.Model;
+import hex.ScoreKeeper;
 import hex.genmodel.utils.DistributionFamily;
 import hex.tree.*;
 import water.DKV;
@@ -94,6 +95,41 @@ public class GBMModel extends SharedTreeModelWithContributions<GBMModel, GBMMode
 
   public GBMModel(Key<GBMModel> selfKey, GBMParameters parms, GBMOutput output) {
     super(selfKey,parms,output);
+    initDefaultParam();
+  }
+
+  void initDefaultParam() {
+    if (_parms._stopping_metric == ScoreKeeper.StoppingMetric.AUTO) {
+      if (_parms._stopping_rounds == 0) {
+        _parms._stopping_metric = null;
+      } else {
+        if (_output.isClassifier()) {
+          _parms._stopping_metric = ScoreKeeper.StoppingMetric.logloss;
+        } else if (_output.isAutoencoder()) {
+          _parms._stopping_metric = ScoreKeeper.StoppingMetric.MSE;
+        } else {
+          _parms._stopping_metric = ScoreKeeper.StoppingMetric.deviance;
+        }
+      }
+    }
+    if (_parms._distribution == DistributionFamily.AUTO) {
+      if (_output._nclasses == 1) {_parms._distribution = DistributionFamily.gaussian;}
+      if (_output._nclasses  == 2) {_parms._distribution = DistributionFamily.bernoulli;}
+      if (_output._nclasses  >= 3) {_parms._distribution = DistributionFamily.multinomial;}
+    }
+    if (_parms._categorical_encoding == Parameters.CategoricalEncodingScheme.AUTO) {
+      if (_output._nclasses == 1)
+        _parms._categorical_encoding = Parameters.CategoricalEncodingScheme.None;
+      else
+        _parms._categorical_encoding = Parameters.CategoricalEncodingScheme.Enum;
+    }
+    if (_parms._fold_assignment == Model.Parameters.FoldAssignmentScheme.AUTO && _parms._fold_column == null) {
+      if (_parms._nfolds > 0 /*&& _parms._fold_column == null*/){
+        _parms._fold_assignment = Parameters.FoldAssignmentScheme.Random;
+      } else {
+        _parms._fold_assignment = null;
+      }
+    }
   }
 
   @Override

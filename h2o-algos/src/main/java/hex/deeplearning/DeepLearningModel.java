@@ -220,6 +220,7 @@ public class DeepLearningModel extends Model<DeepLearningModel,DeepLearningModel
    */
   public DeepLearningModel(final Key destKey, final DeepLearningParameters parms, final DeepLearningModelOutput output, Frame train, Frame valid, int nClasses) {
     super(destKey, parms, output);
+    initDefaultParam(output);
     final DataInfo dinfo = makeDataInfo(train, valid, _parms, nClasses);
     DKV.put(dinfo);
     _output.setNames(dinfo._adaptedFrame.names(), dinfo._adaptedFrame.typesStr());
@@ -231,6 +232,7 @@ public class DeepLearningModel extends Model<DeepLearningModel,DeepLearningModel
     model_info_key = Key.make(H2O.SELF);
     _dist = DistributionFactory.getDistribution(get_params());
     assert(_dist._family != DistributionFamily.AUTO); // Note: Must use sanitized parameters via get_params() as this._params can still have defaults AUTO, etc.)
+    _parms._distribution = _dist._family;
     actual_best_model_key = Key.make(H2O.SELF);
     if (parms._nfolds != 0) actual_best_model_key = null;
     if (!parms._autoencoder) {
@@ -261,6 +263,35 @@ public class DeepLearningModel extends Model<DeepLearningModel,DeepLearningModel
   private long _timeLastScoreEnd;  //finished actual scoring
   private long _timeLastPrintStart;
 
+  void initDefaultParam(final DeepLearningModelOutput output) {
+    if(_parms._stopping_metric == ScoreKeeper.StoppingMetric.AUTO){
+      if (_parms._stopping_rounds == 0) {
+        _parms._stopping_metric = null;
+      } else {
+        if (output.isClassifier()) {
+          _parms._stopping_metric = ScoreKeeper.StoppingMetric.logloss;
+        } else if (!this.isSupervised()) {
+          _parms._stopping_metric = ScoreKeeper.StoppingMetric.MSE;
+        } else {
+          _parms._stopping_metric = ScoreKeeper.StoppingMetric.deviance;
+        }
+      }
+    }
+    if (_parms._categorical_encoding == Parameters.CategoricalEncodingScheme.AUTO) {
+      if (_output.nclasses() == 1)
+        _parms._categorical_encoding = Parameters.CategoricalEncodingScheme.None;
+      else
+        _parms._categorical_encoding = Parameters.CategoricalEncodingScheme.OneHotInternal;
+    }
+    if (_parms._fold_assignment == Model.Parameters.FoldAssignmentScheme.AUTO && _parms._fold_column == null) {
+      if (_parms._nfolds > 0 /*&& _parms._fold_column == null*/){
+        _parms._fold_assignment = Parameters.FoldAssignmentScheme.Random;
+      } else {
+        _parms._fold_assignment = null;
+      }
+    }
+  }
+  
   private void checkTimingConsistency() {
     assert(total_scoring_time_ms <= total_training_time_ms);
     assert(total_setup_time_ms <= total_training_time_ms);
@@ -2217,6 +2248,7 @@ public class DeepLearningModel extends Model<DeepLearningModel,DeepLearningModel
         // Automatically set the distribution
         if (fromParms._distribution == DistributionFamily.AUTO) {
           // For classification, allow AUTO/bernoulli/multinomial with losses CrossEntropy/Quadratic/Huber/Absolute
+          if (nClasses == 1) toParms._distribution = DistributionFamily.gaussian;
           if (nClasses > 1) {
             toParms._distribution = nClasses == 2 ? DistributionFamily.bernoulli : DistributionFamily.multinomial;
           }

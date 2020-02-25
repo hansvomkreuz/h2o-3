@@ -218,6 +218,7 @@ public abstract class Model<M extends Model<M,P,O>, P extends Model.Parameters, 
       AUTO, Random, Modulo, Stratified
     }
     public enum CategoricalEncodingScheme {
+      None(false),
       AUTO(false),
       OneHotInternal(false),
       OneHotExplicit(false),

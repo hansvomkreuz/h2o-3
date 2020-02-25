@@ -1,5 +1,7 @@
 package hex.tree.drf;
 
+import hex.Model;
+import hex.ScoreKeeper;
 import hex.tree.SharedTreeModel;
 import hex.tree.SharedTreeModelWithContributions;
 import water.Key;
@@ -28,7 +30,39 @@ public class DRFModel extends SharedTreeModelWithContributions<DRFModel, DRFMode
     public DRFOutput( DRF b) { super(b); }
   }
 
-  public DRFModel(Key<DRFModel> selfKey, DRFParameters parms, DRFOutput output ) { super(selfKey, parms, output); }
+  public DRFModel(Key<DRFModel> selfKey, DRFParameters parms, DRFOutput output ) {
+    super(selfKey, parms, output);
+    initDefaultParam();
+  }
+
+  void initDefaultParam() {
+    if (_parms._stopping_metric == ScoreKeeper.StoppingMetric.AUTO) {
+      if (_parms._stopping_rounds == 0) {
+        _parms._stopping_metric = null;
+      } else {
+        if (_output.isClassifier()) {
+          _parms._stopping_metric = ScoreKeeper.StoppingMetric.logloss;
+        } else if (_output.isAutoencoder()) {
+          _parms._stopping_metric = ScoreKeeper.StoppingMetric.MSE;
+        } else {
+          _parms._stopping_metric = ScoreKeeper.StoppingMetric.deviance;
+        }
+      }
+    }
+    if (_parms._categorical_encoding == Parameters.CategoricalEncodingScheme.AUTO) {
+      if (_output.nclasses() == 1)
+        _parms._categorical_encoding = Parameters.CategoricalEncodingScheme.None;
+      else
+        _parms._categorical_encoding = Parameters.CategoricalEncodingScheme.Enum;
+    }
+    if (_parms._fold_assignment == Model.Parameters.FoldAssignmentScheme.AUTO && _parms._fold_column == null) {
+      if (_parms._nfolds > 0 /*&& _parms._fold_column == null*/){
+        _parms._fold_assignment = Parameters.FoldAssignmentScheme.Random;
+      } else {
+        _parms._fold_assignment = null;
+      }
+    }
+  }
 
   @Override
   protected ScoreContributionsTask getScoreContributionsTask(SharedTreeModel model) {
